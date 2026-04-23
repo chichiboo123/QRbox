@@ -441,9 +441,7 @@ button:hover{ filter:brightness(.95) }</style></head>
                 }
 
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
+                const code = decodeQRCodeFromImageData(imageData);
 
                 if (code) {
                     handleScanSuccess(code.data);
@@ -472,6 +470,77 @@ button:hover{ filter:brightness(.95) }</style></head>
             }
         }
 
+        function decodeWithJsQR(imageData, inversionAttempts) {
+            if (typeof window.jsQR !== 'function') return null;
+            return window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts });
+        }
+
+        function cloneImageData(imageData) {
+            return new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+        }
+
+        function toHighContrastGrayscale(imageData) {
+            const output = cloneImageData(imageData);
+            const data = output.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                const boosted = gray < 128 ? gray * 0.8 : Math.min(255, gray * 1.15);
+                data[i] = boosted;
+                data[i + 1] = boosted;
+                data[i + 2] = boosted;
+            }
+            return output;
+        }
+
+        function toBinary(imageData, threshold = 150) {
+            const output = cloneImageData(imageData);
+            const data = output.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                const value = gray > threshold ? 255 : 0;
+                data[i] = value;
+                data[i + 1] = value;
+                data[i + 2] = value;
+            }
+            return output;
+        }
+
+        function upscaleImageData(imageData, scale = 2) {
+            const sourceCanvas = document.createElement('canvas');
+            sourceCanvas.width = imageData.width;
+            sourceCanvas.height = imageData.height;
+            const srcCtx = sourceCanvas.getContext('2d');
+            srcCtx.putImageData(imageData, 0, 0);
+
+            const targetCanvas = document.createElement('canvas');
+            targetCanvas.width = imageData.width * scale;
+            targetCanvas.height = imageData.height * scale;
+            const targetCtx = targetCanvas.getContext('2d');
+            targetCtx.imageSmoothingEnabled = false;
+            targetCtx.drawImage(sourceCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
+            return targetCtx.getImageData(0, 0, targetCanvas.width, targetCanvas.height);
+        }
+
+        function decodeQRCodeFromImageData(imageData) {
+            const variants = [
+                imageData,
+                toHighContrastGrayscale(imageData),
+                toBinary(imageData, 145),
+                toBinary(imageData, 160),
+                upscaleImageData(imageData, 2),
+                upscaleImageData(toHighContrastGrayscale(imageData), 2),
+            ];
+
+            for (const variant of variants) {
+                const normal = decodeWithJsQR(variant, "dontInvert");
+                if (normal) return normal;
+
+                const inverted = decodeWithJsQR(variant, "attemptBoth");
+                if (inverted) return inverted;
+            }
+            return null;
+        }
+
         function processImageFile(blob) {
             if (!blob) return;
             const reader = new FileReader();
@@ -490,7 +559,7 @@ button:hover{ filter:brightness(.95) }</style></head>
                     }
 
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const code = window.jsQR(imageData.data, imageData.width, imageData.height);
+                    const code = decodeQRCodeFromImageData(imageData);
                     
                     if (code) {
                         handleScanSuccess(code.data);
