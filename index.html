@@ -29,6 +29,8 @@ button:hover{ filter:brightness(.95) }</style></head>
     
     <!-- jsQR Library -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <!-- ZXing Fallback Decoder -->
+    <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
 
     <style>
         body {
@@ -245,6 +247,8 @@ button:hover{ filter:brightness(.95) }</style></head>
         let scanResult = null;
         let stream = null;
         let animationFrameId = null;
+        let isDecodingFrame = false;
+        let zxingReader = null;
 
         // Utility: DOM Elements
         const el = (id) => document.getElementById(id);
@@ -447,6 +451,19 @@ button:hover{ filter:brightness(.95) }</style></head>
                     handleScanSuccess(code.data);
                     return;
                 }
+
+                if (!isDecodingFrame) {
+                    isDecodingFrame = true;
+                    decodeWithFallbackEngines(canvas)
+                        .then((fallbackText) => {
+                            if (fallbackText && !scanResult) {
+                                handleScanSuccess(fallbackText);
+                            }
+                        })
+                        .finally(() => {
+                            isDecodingFrame = false;
+                        });
+                }
             }
             animationFrameId = requestAnimationFrame(tick);
         }
@@ -541,12 +558,46 @@ button:hover{ filter:brightness(.95) }</style></head>
             return null;
         }
 
+        async function decodeWithBarcodeDetector(canvas) {
+            if (typeof window.BarcodeDetector !== 'function') return null;
+            try {
+                const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+                const detected = await detector.detect(canvas);
+                return detected?.[0]?.rawValue || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function decodeWithZXing(canvas) {
+            if (!window.ZXingBrowser?.BrowserQRCodeReader) return null;
+            try {
+                if (!zxingReader) {
+                    zxingReader = new window.ZXingBrowser.BrowserQRCodeReader();
+                }
+                const result = await zxingReader.decodeFromCanvas(canvas);
+                return result?.getText?.() || result?.text || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function decodeWithFallbackEngines(canvas) {
+            const barcodeDetectorResult = await decodeWithBarcodeDetector(canvas);
+            if (barcodeDetectorResult) return barcodeDetectorResult;
+
+            const zxingResult = await decodeWithZXing(canvas);
+            if (zxingResult) return zxingResult;
+
+            return null;
+        }
+
         function processImageFile(blob) {
             if (!blob) return;
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
-                img.onload = () => {
+                img.onload = async () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     canvas.width = img.width;
@@ -564,7 +615,12 @@ button:hover{ filter:brightness(.95) }</style></head>
                     if (code) {
                         handleScanSuccess(code.data);
                     } else {
-                        alert('QR 코드를 찾을 수 없습니다. 선명한 이미지를 업로드하거나 붙여넣어주세요.');
+                        const fallbackText = await decodeWithFallbackEngines(canvas);
+                        if (fallbackText) {
+                            handleScanSuccess(fallbackText);
+                        } else {
+                            alert('QR 코드를 찾을 수 없습니다. 선명한 이미지를 업로드하거나 붙여넣어주세요.');
+                        }
                     }
                 };
                 img.src = event.target.result;
