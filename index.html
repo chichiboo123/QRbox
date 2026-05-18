@@ -62,18 +62,15 @@
             <div id="view-generate" class="flex flex-col h-full animate-fade-in flex-1">
 
                 <!-- Generator Type Tabs -->
-                <div class="flex gap-1.5 mb-6 bg-gray-100 p-1.5 rounded-xl shrink-0">
-                    <button id="gen-tab-link" onclick="setGenType('link')" class="flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors bg-white shadow text-[#82A0D8]">
+                <div class="flex gap-2 mb-6 bg-gray-100 p-1.5 rounded-xl shrink-0">
+                    <button id="gen-tab-link" onclick="setGenType('link')" class="flex-1 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 transition-colors bg-white shadow text-[#82A0D8]">
                         <span class="material-icons text-base">link</span>링크
                     </button>
-                    <button id="gen-tab-text" onclick="setGenType('text')" class="flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors text-gray-500">
+                    <button id="gen-tab-text" onclick="setGenType('text')" class="flex-1 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 transition-colors text-gray-500">
                         <span class="material-icons text-base">description</span>텍스트
                     </button>
-                    <button id="gen-tab-image" onclick="setGenType('image')" class="flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors text-gray-500">
+                    <button id="gen-tab-image" onclick="setGenType('image')" class="flex-1 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 transition-colors text-gray-500">
                         <span class="material-icons text-base">image</span>이미지
-                    </button>
-                    <button id="gen-tab-file" onclick="setGenType('file')" class="flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors text-gray-500">
-                        <span class="material-icons text-base">attach_file</span>파일
                     </button>
                 </div>
 
@@ -95,32 +92,6 @@
                         <input type="file" accept="image/*" onchange="handleImageMockUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     </div>
 
-                    <!-- File Upload -->
-                    <div id="gen-input-file" class="hidden-view flex flex-col gap-3">
-                        <div id="gen-file-dropzone" class="flex flex-col items-center justify-center border-2 border-dashed border-[#82A0D8]/50 rounded-xl bg-blue-50/50 p-8 text-center relative overflow-hidden transition-all hover:bg-blue-50 cursor-pointer">
-                            <span class="material-icons text-4xl text-[#82A0D8] mb-2">attach_file</span>
-                            <p class="text-sm text-[#2C3E50] font-medium mb-1">클릭하여 파일 첨부</p>
-                            <p class="text-xs text-gray-500">최대 20MB · 모든 파일 형식</p>
-                            <input type="file" id="gen-file-input" onchange="handleFileSelect(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                        </div>
-
-                        <!-- Selected File Info -->
-                        <div id="gen-file-info" class="hidden-view bg-[#E8F0FA] border border-[#82A0D8]/30 rounded-xl p-3 flex items-center gap-3">
-                            <span id="gen-file-icon" class="material-icons text-[#82A0D8] text-2xl">insert_drive_file</span>
-                            <div class="flex-1 min-w-0">
-                                <p id="gen-file-name" class="text-sm font-semibold text-[#2C3E50] truncate"></p>
-                                <p id="gen-file-size" class="text-xs text-gray-500 mt-0.5"></p>
-                            </div>
-                            <button onclick="clearFileSelection()" class="text-gray-400 hover:text-red-400 transition-colors flex-shrink-0">
-                                <span class="material-icons text-base">close</span>
-                            </button>
-                        </div>
-
-                        <p class="text-xs text-gray-400 text-center leading-relaxed break-keep">
-                            파일은 임시 서버에 업로드되어 QR코드 링크로 변환됩니다.<br>
-                            QR코드 스캔 시 파일 다운로드 링크로 연결됩니다.
-                        </p>
-                    </div>
 
                     <!-- Generate Button -->
                     <button id="gen-action-btn" onclick="handleGenerate()" class="mt-4 w-full bg-[#2C3E50] text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-[#1a252f] transition-all flex justify-center items-center gap-2">
@@ -130,7 +101,7 @@
                     <!-- Loading -->
                     <div id="gen-loading" class="hidden-view mt-8 flex flex-col items-center justify-center text-[#82A0D8] animate-pulse">
                         <span class="material-icons animate-spin text-4xl mb-2">autorenew</span>
-                        <p id="gen-loading-text" class="text-sm font-medium">업로드 중입니다...</p>
+                        <p class="text-sm font-medium">클라우드에 이미지를 업로드 중입니다...</p>
                     </div>
 
                     <!-- Result -->
@@ -144,14 +115,6 @@
                             <span class="font-bold">안내:</span> 이미지는 QR코드 용량을 초과하므로 자동으로 클라우드 링크로 변환되어 생성되었습니다. (데모용 가상 링크)
                         </p>
 
-                        <!-- File upload info -->
-                        <div id="gen-file-warning" class="hidden-view mt-4 w-full bg-[#E8F0FA] border border-[#82A0D8]/30 rounded-xl p-3">
-                            <p class="text-xs text-[#2C3E50] leading-relaxed break-keep flex items-start gap-1.5">
-                                <span class="material-icons text-[#82A0D8] text-sm mt-0.5 flex-shrink-0">info</span>
-                                <span>파일이 임시 서버(file.io)에 업로드되었습니다. QR코드를 스캔하면 파일 다운로드 링크로 연결됩니다.<br>
-                                <span class="text-gray-500">(첫 번째 다운로드 후 자동 삭제 · 최대 14일 보관)</span></span>
-                            </p>
-                        </div>
 
                         <div class="flex w-full gap-3 mt-6">
                             <button onclick="copyQRToClipboard()" class="flex-1 flex items-center justify-center gap-1.5 bg-white border-2 border-[#82A0D8] text-[#82A0D8] font-bold py-3 px-2 rounded-xl shadow-sm hover:bg-blue-50 transition-all text-sm">
@@ -261,7 +224,6 @@
         let mainMode = 'generate';
         let genType = 'link';
         let currentQrValue = '';
-        let selectedFile = null;
 
         let scanType = 'webcam';
         let scanResult = null;
@@ -297,34 +259,25 @@
         function setGenType(type) {
             genType = type;
             currentQrValue = '';
-            selectedFile = null;
             el('gen-result-area').classList.add('hidden-view');
             el('gen-input-link').value = '';
             el('gen-input-text').value = '';
-            el('gen-file-info').classList.add('hidden-view');
-            el('gen-file-input') && (el('gen-file-input').value = '');
 
-            const active   = "flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors bg-white shadow text-[#82A0D8]";
-            const inactive = "flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors text-gray-500";
+            const active   = "flex-1 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 transition-colors bg-white shadow text-[#82A0D8]";
+            const inactive = "flex-1 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 transition-colors text-gray-500";
 
             el('gen-tab-link').className  = type === 'link'  ? active : inactive;
             el('gen-tab-text').className  = type === 'text'  ? active : inactive;
             el('gen-tab-image').className = type === 'image' ? active : inactive;
-            el('gen-tab-file').className  = type === 'file'  ? active : inactive;
 
             el('gen-input-link').classList.toggle('hidden-view',  type !== 'link');
             el('gen-input-text').classList.toggle('hidden-view',  type !== 'text');
             el('gen-input-image').classList.toggle('hidden-view', type !== 'image');
-            el('gen-input-file').classList.toggle('hidden-view',  type !== 'file');
 
-            // For image/file types the button hides until a file is chosen
-            const hideBtn = type === 'image' || type === 'file';
-            el('gen-action-btn').classList.toggle('hidden-view', hideBtn);
+            el('gen-action-btn').classList.toggle('hidden-view', type === 'image');
         }
 
         function handleGenerate() {
-            if (genType === 'file') { handleFileGenerate(); return; }
-
             let value = '';
             if (genType === 'link') value = el('gen-input-link').value.trim();
             if (genType === 'text') value = el('gen-input-text').value.trim();
@@ -338,99 +291,19 @@
             if (!file) return;
             el('gen-result-area').classList.add('hidden-view');
             el('gen-loading').classList.remove('hidden-view');
-            el('gen-loading-text').textContent = '클라우드에 이미지를 업로드 중입니다...';
             setTimeout(() => {
                 const id = Math.random().toString(36).substring(2, 10);
                 el('gen-loading').classList.add('hidden-view');
-                renderQRCode(`https://qrbox.app/img/${id}`, 'image');
+                renderQRCode(`https://qrbox.app/img/${id}`, true);
             }, 1500);
         }
 
-        // ── File Upload ────────────────────────────────────────
-        const FILE_MAX_BYTES = 20 * 1024 * 1024; // 20 MB
-
-        function getFileIcon(mimeType) {
-            if (!mimeType) return 'insert_drive_file';
-            if (mimeType.startsWith('image/'))  return 'image';
-            if (mimeType.startsWith('video/'))  return 'video_file';
-            if (mimeType.startsWith('audio/'))  return 'audio_file';
-            if (mimeType === 'application/pdf') return 'picture_as_pdf';
-            if (mimeType.includes('zip') || mimeType.includes('compress') || mimeType.includes('rar')) return 'folder_zip';
-            if (mimeType.includes('word') || mimeType.includes('document'))     return 'description';
-            if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'table_chart';
-            if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) return 'slideshow';
-            return 'insert_drive_file';
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes < 1024)           return bytes + ' B';
-            if (bytes < 1024 * 1024)    return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            if (file.size > FILE_MAX_BYTES) {
-                alert(`파일 크기가 20MB를 초과합니다.\n(선택 파일: ${formatFileSize(file.size)})`);
-                e.target.value = '';
-                return;
-            }
-
-            selectedFile = file;
-            el('gen-file-icon').textContent = getFileIcon(file.type);
-            el('gen-file-name').textContent = file.name;
-            el('gen-file-size').textContent = formatFileSize(file.size);
-            el('gen-file-info').classList.remove('hidden-view');
-            el('gen-action-btn').classList.remove('hidden-view');
-        }
-
-        function clearFileSelection() {
-            selectedFile = null;
-            const input = el('gen-file-input');
-            if (input) input.value = '';
-            el('gen-file-info').classList.add('hidden-view');
-            el('gen-action-btn').classList.add('hidden-view');
-            el('gen-result-area').classList.add('hidden-view');
-        }
-
-        async function handleFileGenerate() {
-            if (!selectedFile) { alert('파일을 선택해주세요.'); return; }
-
-            el('gen-result-area').classList.add('hidden-view');
-            el('gen-action-btn').disabled = true;
-            el('gen-loading').classList.remove('hidden-view');
-            el('gen-loading-text').textContent = '파일을 업로드 중입니다...';
-
-            try {
-                const formData = new FormData();
-                formData.append('file', selectedFile);
-
-                const response = await fetch('https://file.io/', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-                const data = await response.json();
-                if (!data.success || !data.link) throw new Error('link missing');
-
-                el('gen-loading').classList.add('hidden-view');
-                el('gen-action-btn').disabled = false;
-                renderQRCode(data.link, 'file');
-            } catch (err) {
-                console.error('File upload error:', err);
-                el('gen-loading').classList.add('hidden-view');
-                el('gen-action-btn').disabled = false;
-                alert('파일 업로드 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.');
-            }
-        }
-
         // ── QR Render / Download / Copy ────────────────────────
-        function renderQRCode(value, warningType) {
+        function renderQRCode(value, isImageMock) {
             currentQrValue = value;
             el('qr-image-element').src =
                 `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(value)}&color=2C3E50`;
-            el('gen-img-warning').classList.toggle('hidden-view',  warningType !== 'image');
-            el('gen-file-warning').classList.toggle('hidden-view', warningType !== 'file');
+            el('gen-img-warning').classList.toggle('hidden-view', !isImageMock);
             el('gen-result-area').classList.remove('hidden-view');
         }
 
