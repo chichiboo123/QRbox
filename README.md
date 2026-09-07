@@ -16,6 +16,8 @@
 | 파일 | 최대 20MB 파일을 [file.io](https://www.file.io)에 업로드해 다운로드 링크 QR 생성 |
 
 - 생성된 QR코드 **클립보드 복사** 및 **PNG 다운로드** 지원
+- **QR 디자인 커스텀** — 6가지 코드 모양, 코드·배경 색상, 브랜드 로고 삽입 지원
+- 로고를 넣으면 높은 오류 복원율과 로고 여백을 자동 적용하고, 커스텀 디자인 그대로 고해상도 PNG 저장
 
 ### QR 인식
 - **카메라 스캔** — 후면 카메라로 실시간 인식
@@ -61,6 +63,7 @@ python3 -m http.server 8080
 | [jsQR](https://github.com/cozmo/jsQR) | QR코드 디코딩 (주 엔진) | Apache 2.0 |
 | [ZXing Browser](https://github.com/zxing-js/browser) | QR코드 디코딩 (폴백 엔진) | MIT |
 | [goQR.me API](https://goqr.me/api/) | QR코드 이미지 생성 | 무료 공개 API |
+| [qr-code-styling](https://github.com/kozakdenys/qr-code-styling) | QR코드 모양·색상·로고 커스텀 및 PNG 출력 | MIT |
 | [file.io](https://www.file.io) | 파일 임시 업로드 | 무료 공개 API |
 | [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss) | UI 스타일링 | MIT |
 | [Pretendard](https://github.com/orioncactus/pretendard) | 한국어 폰트 | OFL-1.1 |

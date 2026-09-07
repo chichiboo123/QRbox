@@ -19,6 +19,8 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <!-- ZXing Fallback Decoder -->
     <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+    <!-- QR Code Styling (custom shapes, colors and logos) -->
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0/lib/qr-code-styling.js"></script>
 
     <style>
         body { font-family: 'Pretendard GOV', sans-serif; }
@@ -28,6 +30,12 @@
             to   { opacity: 1; transform: translateY(0); }
         }
         .hidden-view { display: none !important; }
+        .style-option:has(input:checked) { border-color: #82A0D8; background: #E8F0FA; color: #2C3E50; box-shadow: 0 0 0 1px #82A0D8; }
+        .style-option:has(input:focus-visible) { outline: 2px solid #82A0D8; outline-offset: 2px; }
+        .color-input { appearance: none; -webkit-appearance: none; border: 0; padding: 0; background: transparent; }
+        .color-input::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-input::-webkit-color-swatch { border: 0; border-radius: 9999px; }
+        .color-input::-moz-color-swatch { border: 0; border-radius: 9999px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-gradient-to-br from-[#E8F0FA] via-[#FDF6E3] to-[#FBE7E9] text-[#2C3E50]">
@@ -127,6 +135,45 @@
                         <span class="material-icons text-lg">qr_code</span>QR코드 생성하기
                     </button>
 
+                    <!-- QR Customizer -->
+                    <section id="qr-customizer" class="mt-5 border border-gray-200 rounded-2xl overflow-hidden bg-white/70">
+                        <button type="button" onclick="toggleCustomizer()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors" aria-controls="qr-customizer-body" aria-expanded="true" id="qr-customizer-toggle">
+                            <span class="flex items-center gap-2 font-bold text-sm"><span class="material-icons text-[#82A0D8] text-xl">palette</span>QR 디자인 커스텀</span>
+                            <span id="customizer-chevron" class="material-icons text-gray-400 transition-transform">expand_less</span>
+                        </button>
+                        <div id="qr-customizer-body" class="border-t border-gray-100 p-4 space-y-5">
+                            <div>
+                                <p class="text-xs font-bold text-gray-600 mb-2">코드 모양</p>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <label class="style-option cursor-pointer rounded-xl border border-gray-200 px-2 py-2.5 text-center text-xs text-gray-500 transition-all"><input class="sr-only" type="radio" name="dot-style" value="square" onchange="updateQRStyle()">클래식</label>
+                                    <label class="style-option cursor-pointer rounded-xl border border-gray-200 px-2 py-2.5 text-center text-xs text-gray-500 transition-all"><input class="sr-only" type="radio" name="dot-style" value="rounded" checked onchange="updateQRStyle()">둥글게</label>
+                                    <label class="style-option cursor-pointer rounded-xl border border-gray-200 px-2 py-2.5 text-center text-xs text-gray-500 transition-all"><input class="sr-only" type="radio" name="dot-style" value="dots" onchange="updateQRStyle()">도트</label>
+                                    <label class="style-option cursor-pointer rounded-xl border border-gray-200 px-2 py-2.5 text-center text-xs text-gray-500 transition-all"><input class="sr-only" type="radio" name="dot-style" value="classy" onchange="updateQRStyle()">클래시</label>
+                                    <label class="style-option cursor-pointer rounded-xl border border-gray-200 px-2 py-2.5 text-center text-xs text-gray-500 transition-all"><input class="sr-only" type="radio" name="dot-style" value="classy-rounded" onchange="updateQRStyle()">웨이브</label>
+                                    <label class="style-option cursor-pointer rounded-xl border border-gray-200 px-2 py-2.5 text-center text-xs text-gray-500 transition-all"><input class="sr-only" type="radio" name="dot-style" value="extra-rounded" onchange="updateQRStyle()">소프트</label>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="block"><span class="text-xs font-bold text-gray-600 block mb-2">코드 색상</span><span class="flex items-center gap-2 border border-gray-200 rounded-xl p-2 bg-gray-50"><input id="qr-foreground" type="color" value="#2C3E50" oninput="updateQRStyle()" class="color-input w-8 h-8 shrink-0 cursor-pointer"><span id="qr-foreground-value" class="text-xs font-mono text-gray-500">#2C3E50</span></span></label>
+                                <label class="block"><span class="text-xs font-bold text-gray-600 block mb-2">배경 색상</span><span class="flex items-center gap-2 border border-gray-200 rounded-xl p-2 bg-gray-50"><input id="qr-background" type="color" value="#FFFFFF" oninput="updateQRStyle()" class="color-input w-8 h-8 shrink-0 cursor-pointer"><span id="qr-background-value" class="text-xs font-mono text-gray-500">#FFFFFF</span></span></label>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-600 mb-2">브랜드 로고 <span class="font-normal text-gray-400">(선택)</span></p>
+                                <label id="logo-upload-label" class="flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl py-3 px-3 cursor-pointer hover:border-[#82A0D8] hover:bg-blue-50/40 transition-all text-xs text-gray-500">
+                                    <span class="material-icons text-lg text-[#82A0D8]">add_photo_alternate</span><span>PNG, JPG, SVG 로고 추가</span>
+                                    <input id="qr-logo-input" type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onchange="handleLogoUpload(event)" class="hidden">
+                                </label>
+                                <div id="logo-preview-area" class="hidden-view flex items-center gap-3 border border-[#82A0D8]/30 bg-blue-50/50 rounded-xl p-2.5">
+                                    <img id="logo-preview" alt="선택한 브랜드 로고" class="w-10 h-10 object-contain rounded-lg bg-white border border-gray-100">
+                                    <span id="logo-name" class="flex-1 min-w-0 truncate text-xs font-medium"></span>
+                                    <button type="button" onclick="clearLogo()" class="p-1 text-gray-400 hover:text-red-400" aria-label="로고 제거"><span class="material-icons text-lg">delete</span></button>
+                                </div>
+                                <p class="mt-2 text-[11px] text-gray-400 leading-relaxed">스캔 인식률을 위해 로고 주변에 여백과 높은 오류 복원율을 자동 적용합니다.</p>
+                            </div>
+                            <button type="button" onclick="resetQRStyle()" class="w-full py-2 text-xs font-semibold text-gray-500 hover:text-[#82A0D8] flex items-center justify-center gap-1"><span class="material-icons text-sm">restart_alt</span>디자인 초기화</button>
+                        </div>
+                    </section>
+
                     <!-- Loading -->
                     <div id="gen-loading" class="hidden-view mt-8 flex flex-col items-center justify-center text-[#82A0D8] animate-pulse">
                         <span class="material-icons animate-spin text-4xl mb-2">autorenew</span>
@@ -136,7 +183,7 @@
                     <!-- Result -->
                     <div id="gen-result-area" class="hidden-view mt-8 flex flex-col items-center animate-fade-in pb-4">
                         <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                            <img id="qr-image-element" src="" alt="Generated QR Code" class="w-48 h-48" crossorigin="anonymous">
+                            <div id="qr-image-element" class="w-48 h-48" role="img" aria-label="생성된 QR 코드"></div>
                         </div>
 
                         <!-- Image mock warning -->
@@ -262,6 +309,8 @@
         let genType = 'link';
         let currentQrValue = '';
         let selectedFile = null;
+        let qrCode = null;
+        let qrLogoDataUrl = '';
 
         let scanType = 'webcam';
         let scanResult = null;
@@ -331,6 +380,79 @@
 
             if (!value) { alert('내용을 입력해주세요.'); return; }
             renderQRCode(value, null);
+        }
+
+        function toggleCustomizer() {
+            const body = el('qr-customizer-body');
+            const isOpen = !body.classList.contains('hidden-view');
+            body.classList.toggle('hidden-view', isOpen);
+            el('customizer-chevron').textContent = isOpen ? 'expand_more' : 'expand_less';
+            el('qr-customizer-toggle').setAttribute('aria-expanded', String(!isOpen));
+        }
+
+        function getQRStyleOptions(size = 200) {
+            const foreground = el('qr-foreground').value;
+            const background = el('qr-background').value;
+            const dotStyle = document.querySelector('input[name="dot-style"]:checked')?.value || 'rounded';
+            return {
+                width: size,
+                height: size,
+                type: 'canvas',
+                data: currentQrValue,
+                margin: Math.round(size * 0.04),
+                qrOptions: { errorCorrectionLevel: qrLogoDataUrl ? 'H' : 'Q' },
+                dotsOptions: { color: foreground, type: dotStyle },
+                cornersSquareOptions: { color: foreground, type: dotStyle === 'square' ? 'square' : 'extra-rounded' },
+                cornersDotOptions: { color: foreground, type: dotStyle === 'square' ? 'square' : 'dot' },
+                backgroundOptions: { color: background },
+                image: qrLogoDataUrl || undefined,
+                imageOptions: { crossOrigin: 'anonymous', margin: Math.round(size * 0.025), imageSize: 0.34, hideBackgroundDots: true }
+            };
+        }
+
+        function updateQRStyle() {
+            el('qr-foreground-value').textContent = el('qr-foreground').value.toUpperCase();
+            el('qr-background-value').textContent = el('qr-background').value.toUpperCase();
+            if (!currentQrValue || !qrCode) return;
+            qrCode.update(getQRStyleOptions());
+        }
+
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 3 * 1024 * 1024) {
+                alert('로고 이미지는 3MB 이하로 선택해주세요.');
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                qrLogoDataUrl = reader.result;
+                el('logo-preview').src = qrLogoDataUrl;
+                el('logo-name').textContent = file.name;
+                el('logo-upload-label').classList.add('hidden-view');
+                el('logo-preview-area').classList.remove('hidden-view');
+                updateQRStyle();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearLogo() {
+            qrLogoDataUrl = '';
+            el('qr-logo-input').value = '';
+            el('logo-preview').removeAttribute('src');
+            el('logo-upload-label').classList.remove('hidden-view');
+            el('logo-preview-area').classList.add('hidden-view');
+            updateQRStyle();
+        }
+
+        function resetQRStyle() {
+            el('qr-foreground').value = '#2C3E50';
+            el('qr-background').value = '#FFFFFF';
+            const defaultShape = document.querySelector('input[name="dot-style"][value="rounded"]');
+            if (defaultShape) defaultShape.checked = true;
+            clearLogo();
+            updateQRStyle();
         }
 
         function handleImageMockUpload(e) {
@@ -427,8 +549,20 @@
         // ── QR Render / Download / Copy ────────────────────────
         function renderQRCode(value, warningType) {
             currentQrValue = value;
-            el('qr-image-element').src =
-                `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(value)}&color=2C3E50`;
+            const container = el('qr-image-element');
+            container.replaceChildren();
+            if (typeof window.QRCodeStyling !== 'function') {
+                const image = new Image();
+                image.width = 192;
+                image.height = 192;
+                image.alt = '생성된 QR 코드';
+                image.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(value)}&color=2C3E50`;
+                container.appendChild(image);
+                qrCode = null;
+            } else {
+                qrCode = new window.QRCodeStyling(getQRStyleOptions());
+                qrCode.append(container);
+            }
             el('gen-img-warning').classList.toggle('hidden-view',  warningType !== 'image');
             el('gen-file-warning').classList.toggle('hidden-view', warningType !== 'file');
             el('gen-result-area').classList.remove('hidden-view');
@@ -437,23 +571,19 @@
         async function downloadQR() {
             if (!currentQrValue) return;
             try {
-                const res  = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(currentQrValue)}&color=2C3E50`);
-                const blob = await res.blob();
-                const url  = URL.createObjectURL(blob);
-                const a    = document.createElement('a');
-                a.download = 'QRBOX_code.png';
-                a.href = url;
-                a.click();
-                URL.revokeObjectURL(url);
+                if (!qrCode) throw new Error('QR renderer unavailable');
+                const exportQR = new window.QRCodeStyling(getQRStyleOptions(1000));
+                await exportQR.download({ name: 'QRBOX_code', extension: 'png' });
             } catch { alert('다운로드 중 오류가 발생했습니다.'); }
         }
 
         async function copyQRToClipboard() {
             if (!currentQrValue) return;
             try {
-                const res  = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(currentQrValue)}&color=2C3E50`);
-                const blob = await res.blob();
-                await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+                if (!qrCode) throw new Error('QR renderer unavailable');
+                const exportQR = new window.QRCodeStyling(getQRStyleOptions(1000));
+                const blob = await exportQR.getRawData('png');
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
                 alert('QR코드 이미지가 클립보드에 복사되었습니다.');
             } catch { alert('클립보드 복사를 지원하지 않는 브라우저 환경입니다.'); }
         }
